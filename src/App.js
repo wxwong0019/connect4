@@ -22,13 +22,16 @@ function App() {
     return false;
   }
   console.log(board)
+  
   var rowArray = [];
   for(let i=0; i<6; i++){
     var colArray= [];
     for(let j=0; j<7; j++){
-      
+      const handleClick =(e) =>{
+        console.log("i :"+i+" j :"+j);
+      }
       colArray.push(
-        <div style={ {border:"1px solid black", backgroundColor:'black', width:'10vw', height:'10vw', display:'flex'}}>
+        <div style={ {border:"1px solid black", backgroundColor:'black', width:'10vw', height:'10vw', display:'flex'}} onClick={handleClick}>
           <div style={{borderRadius:"50%", backgroundColor:'white', display:'flex', width:'70%', height:'70%', marginLeft:'10px', padding:1} }>
             {checkBoard(i,j) ? <div style={{ backgroundColor:currentPlayer, borderRadius:"50%",flex:1}} /> : null}  
           </div> 
