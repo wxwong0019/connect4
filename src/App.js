@@ -4,64 +4,89 @@ import { useEffect, useState } from 'react';
 
 function App() {
   var initialBoard = new Array();
-  for(let i=0; i<6; i++){
-    var subArray = new Array(7)
+  // for(let i=0; i<6; i++){
+  //   var subArray = new Array(7).fill(null)
 
-    initialBoard.push(subArray);
+  //   initialBoard.push(subArray);
+  // }
+  var count = 0;
+  for (let i = 0; i < 6; i++) {
+    var subArray = []
+    for (let i = 0; i < 7; i++) {
+      subArray.push(count);
+      count++;
+    }
+    initialBoard.push(subArray)
   }
   const [currentPlayer, setCurrentPlayer] = useState("blue")
   const [board, setBoard] = useState(initialBoard)
   const [winner, setWinner] = useState("none");
-  
-  const checkBoard = (x,y) => {
+  const [currMove, setCurrMove] = useState([])
+
+  useEffect(()=>{
+    console.log(board)
+    if(currMove[0]){
+      checkBoard(currMove[0],currMove[1]);
+    }
+    console.log("winner is :"+winner)
+  },[board,winner])
+  const handleReset = () =>{
+
+  }
+  const checkBoard = (x, y) => {
     var count = 0;
     var tempX = x;
     var tempY = y
+    console.log(board)
     var currColor = board[x][y];
+    
+    console.log("x :" + x + " y :" + y + " color :")
+    console.log(board[x][y])
 
     //check horizontally
-    while(tempX>=0){
-      if(board[tempX][y] === currColor){
+    while (tempX >= 0) {
+      if (board[tempX][y] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempX--;
     }
-    tempX = x;
-    while(tempX <= 5){
-      if(board[tempX][y] === currColor){
+    tempX = x+1;
+    while (tempX <= 5) {
+      if (board[tempX][y] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempX++;
     }
-    if(count === 4) {
+    if (count === 4) {
+      console.log("Win horizontally :"+count)
       setWinner(currColor);
       return;
     }
 
     //check vertically
     count = 0;
-    while(tempY>=0){
-      if(board[x][tempY] === currColor){
+    while (tempY >= 0) {
+      if (board[x][tempY] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempY--;
     }
-    tempY = y;
-    while(tempY <= 6){
-      if(board[x][tempY] === currColor){
+    tempY = y+1;
+    while (tempY <= 6) {
+      if (board[x][tempY] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempY++;
     }
-    if(count === 4) {
+    if (count === 4) {
       setWinner(currColor);
       return;
     }
@@ -70,10 +95,10 @@ function App() {
     tempX = x;
     tempY = y;
     count = 0;
-    while(tempX >= 0 && tempY >=0){
-      if(board[tempX][tempY] === currColor){
+    while (tempX >= 0 && tempY >= 0) {
+      if (board[tempX][tempY] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempX--;
@@ -81,16 +106,16 @@ function App() {
     }
     tempX = x;
     tempY = y;
-    while(tempX <= 5 && tempY <= 6 ){
-      if(board[tempX][tempY] === currColor){
+    while (tempX <= 5 && tempY <= 6) {
+      if (board[tempX][tempY] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempX++;
       tempY++;
     }
-    if(count === 4) {
+    if (count === 4) {
       setWinner(currColor);
       return;
     }
@@ -99,10 +124,10 @@ function App() {
     tempX = x;
     tempY = y;
     count = 0;
-    while(tempX <= 5 && tempY >=0){
-      if(board[tempX][tempY] === currColor){
+    while (tempX <= 5 && tempY >= 0) {
+      if (board[tempX][tempY] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempX++;
@@ -110,85 +135,77 @@ function App() {
     }
     tempX = x;
     tempY = y;
-    while(tempX >= 0 && tempY <= 6 ){
-      if(board[tempX][tempY] === currColor){
+    while (tempX >= 0 && tempY <= 6) {
+      if (board[tempX][tempY] === currColor) {
         count++;
-      }else{
+      } else {
         break;
       }
       tempX--;
       tempY++;
     }
-    if(count === 4) {
+    if (count === 4) {
       setWinner(currColor);
       return;
     }
   }
-  
-  var rowArray = [];
-  for(let i=0; i<6; i++){
-    var colArray= [];
-    for(let j=0; j<7; j++){
-      
-      const handleClick =(e) =>{
-        if(winner !== "none"){
-          return;
-        }else{
-          console.log("next move")
+
+  const renderBoard = () => {
+    var rowArray = [];
+    for (let i = 0; i < 6; i++) {
+      var colArray = [];
+      for (let j = 0; j < 7; j++) {
+
+        const handleClick = (e) => {
+          
+          if (winner !== "none") {
+            console.log("there is a winner :" + winner)
+            return;
+          }
+
+          var topPiece = 5;
+          while (topPiece >= 0 && (board[topPiece][j] === "red" || board[topPiece][j] === "blue")) {
+            topPiece--;
+          }
+          if (topPiece < 0) {
+            console.log("topepiece :" + topPiece)
+            return
+          }
+          setBoard(prevBoard => {
+            const newBoard = [...prevBoard];
+            const newBoardRow= [...newBoard[topPiece]]
+            newBoardRow[j] = currentPlayer
+            newBoard[topPiece] = newBoardRow
+            // newBoard[topPiece][j] = currentPlayer
+            console.log("setBoard")
+            setCurrMove([topPiece,j])
+            return newBoard
+          })
+          currentPlayer === "blue" ? setCurrentPlayer("red") : setCurrentPlayer("blue")
+          
         }
-        console.log("i :"+i+" j :"+j);
-        var topPiece = 5;
-        while(topPiece>=0 && board[topPiece][j] ){
-          topPiece--;
-        }
-        if(topPiece<0){
-          return
-        }
-        setBoard(prevBoard => {
-          const newBoard = [...prevBoard];
-          // const newBoardRow= [...newBoard[topPiece]]
-          // newBoardRow[j] = currentPlayer
-          // newBoard[topPiece] = newBoardRow
-          newBoard[topPiece][j] = currentPlayer
-          // const newBoard = prevBoard.map((row,id) => {
-          //   if(id === topPiece){
-          //     const newBoardRow = row.map((piece, id) => {
-          //       if(id === j){
-          //         return currentPlayer;
-          //       }else{
-          //         return piece
-          //       }
-          //     })
-          //     return newBoardRow
-          //   }else{
-          //     return row;
-          //   }
-          // })
-          return newBoard
-        })
-        currentPlayer === "blue" ? setCurrentPlayer("red") : setCurrentPlayer("blue")
-        checkBoard(i,j);
-        console.log(board);
-        console.log("winner is :"+winner)
+
+        colArray.push(
+          <div style={{ border: "1px solid black", backgroundColor: 'black', width: '10vw', height: '10vw', display: 'flex' }} onClick={handleClick}>
+            <div style={{ borderRadius: "50%", backgroundColor: 'white', display: 'flex', width: '70%', height: '70%', marginLeft: '10px', marginTop: '10px', padding: 1 }}>
+              {board[i][j] ? <div style={{ backgroundColor: board[i][j], borderRadius: "50%", flex: 1 }} /> : null}
+            </div>
+
+          </div>
+        )
       }
-
-      colArray.push(
-        <div style={ {border:"1px solid black", backgroundColor:'black', width:'10vw', height:'10vw', display:'flex'}} onClick={handleClick}>
-          <div style={{borderRadius:"50%", backgroundColor:'white', display:'flex', width:'70%', height:'70%', marginLeft:'10px',marginTop:'10px', padding:1} }>
-            {board[i][j] ? <div style={{ backgroundColor:board[i][j], borderRadius:"50%",flex:1}} /> : null}  
-          </div> 
-
-        </div>
+      rowArray.push(
+        <div style={{ display: 'flex', flexDirection: 'row' }}>{colArray}</div>
       )
     }
-    rowArray.push(
-      <div style={{display:'flex', flexDirection:'row'}}>{colArray}</div>
-    )
+    return rowArray;
   }
+
 
   return (
     <div className="App">
-      <div>{rowArray}</div>
+      <div>{renderBoard()}</div>
+      <div>{winner !== "none" ? <h1> Winner is {winner} <form onSubmit={handleReset}><button type="submit">reset</button></form></h1> : null}</div>
     </div>
   );
 }
