@@ -24,11 +24,9 @@ function App() {
   const [currMove, setCurrMove] = useState([])
 
   useEffect(()=>{
-    console.log(board)
     if(currMove[0]){
       checkBoard(currMove[0],currMove[1]);
     }
-    console.log("winner is :"+winner)
   },[board,winner])
   const handleReset = () =>{
 
@@ -37,13 +35,8 @@ function App() {
     var count = 0;
     var tempX = x;
     var tempY = y
-    console.log(board)
     var currColor = board[x][y];
-    
-    console.log("x :" + x + " y :" + y + " color :")
-    console.log(board[x][y])
-
-    //check horizontally
+    //check vertically
     while (tempX >= 0) {
       if (board[tempX][y] === currColor) {
         count++;
@@ -62,12 +55,12 @@ function App() {
       tempX++;
     }
     if (count === 4) {
-      console.log("Win horizontally :"+count)
+      console.log("Win vertically :"+count)
       setWinner(currColor);
       return;
     }
 
-    //check vertically
+    //check horizontally
     count = 0;
     while (tempY >= 0) {
       if (board[x][tempY] === currColor) {
@@ -104,8 +97,8 @@ function App() {
       tempX--;
       tempY--;
     }
-    tempX = x;
-    tempY = y;
+    tempX = x+1;
+    tempY = y+1;
     while (tempX <= 5 && tempY <= 6) {
       if (board[tempX][tempY] === currColor) {
         count++;
@@ -133,8 +126,8 @@ function App() {
       tempX++;
       tempY--;
     }
-    tempX = x;
-    tempY = y;
+    tempX = x-1;
+    tempY = y+1;
     while (tempX >= 0 && tempY <= 6) {
       if (board[tempX][tempY] === currColor) {
         count++;
@@ -176,8 +169,6 @@ function App() {
             const newBoardRow= [...newBoard[topPiece]]
             newBoardRow[j] = currentPlayer
             newBoard[topPiece] = newBoardRow
-            // newBoard[topPiece][j] = currentPlayer
-            console.log("setBoard")
             setCurrMove([topPiece,j])
             return newBoard
           })
@@ -186,7 +177,7 @@ function App() {
         }
 
         colArray.push(
-          <div style={{ border: "1px solid black", backgroundColor: 'black', width: '10vw', height: '10vw', display: 'flex' }} onClick={handleClick}>
+          <div key={j} style={{ border: "1px solid black", backgroundColor: 'black', width: '10vw', height: '10vw', display: 'flex' }} onClick={handleClick}>
             <div style={{ borderRadius: "50%", backgroundColor: 'white', display: 'flex', width: '70%', height: '70%', marginLeft: '10px', marginTop: '10px', padding: 1 }}>
               {board[i][j] ? <div style={{ backgroundColor: board[i][j], borderRadius: "50%", flex: 1 }} /> : null}
             </div>
@@ -195,7 +186,7 @@ function App() {
         )
       }
       rowArray.push(
-        <div style={{ display: 'flex', flexDirection: 'row' }}>{colArray}</div>
+        <div key={i} style={{ display: 'flex', flexDirection: 'row' }}>{colArray}</div>
       )
     }
     return rowArray;
