@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
-
+import socket from './socket';
 function App() {
   var initialBoard = new Array();
   // for(let i=0; i<6; i++){
@@ -9,6 +9,8 @@ function App() {
 
   //   initialBoard.push(subArray);
   // }
+
+  
   var count = 0;
   for (let i = 0; i < 6; i++) {
     var subArray = []
@@ -19,18 +21,63 @@ function App() {
     initialBoard.push(subArray)
   }
   const [currentPlayer, setCurrentPlayer] = useState("blue")
+  const [myColor, setMyColor] = useState()
   const [board, setBoard] = useState(initialBoard)
   const [winner, setWinner] = useState("none");
   const [currMove, setCurrMove] = useState([])
 
   useEffect(()=>{
+    console.log("myColor :"+myColor);
+    if(myColor === undefined){
+      setMyColor("blue")
+      socket.emit("initial-color", "blue")
+    }
+    socket.on("set-initial-color", (opponentInitialColor)=> {
+      console.log("opponentInitialColor :"+opponentInitialColor);
+      if(opponentInitialColor === "blue"){
+        setMyColor("red")
+      }else{
+        setMyColor("blue")
+      }
+    })
+    
+    
     if(currMove[0]){
       checkBoard(currMove[0],currMove[1]);
     }
-  },[board,winner])
+    socket.on("opponent-move", (opponentMove, opponentColor)=> {
+      console.log(opponentMove)
+        if(opponentMove.length ===0){
+          if(opponentColor === "blue"){
+            setMyColor("red")
+          }else{
+            setMyColor("blue")
+          }
+          
+        }
+        console.log("opponentColor : "+opponentColor)
+        if(opponentMove.length !==0 && currMove[0] !== opponentMove[0] && currMove[1] !== opponentMove[1]){
+          console.log("entered setBoard")
+          setBoard(prevBoard => {
+            const newBoard = [...prevBoard];
+            const newBoardRow= [...newBoard[opponentMove[0]]]
+            newBoardRow[opponentMove[1]] = opponentColor
+            newBoard[opponentMove[0]] = newBoardRow
+            setCurrMove([opponentMove[0],opponentMove[1]])
+            return newBoard
+          })
+        }
+        if(opponentColor == "blue"){
+          setCurrentPlayer("red")
+        }else{
+          setCurrentPlayer("blue")
+        }
+    })    
+  },[board,winner,currentPlayer, myColor])
   const handleReset = () =>{
-
+  
   }
+
   const checkBoard = (x, y) => {
     var count = 0;
     var tempX = x;
@@ -172,7 +219,10 @@ function App() {
             setCurrMove([topPiece,j])
             return newBoard
           })
-          currentPlayer === "blue" ? setCurrentPlayer("red") : setCurrentPlayer("blue")
+          var tempCurrentPlayer = null;
+          socket.emit("from-client", [topPiece,j], currentPlayer)
+          currentPlayer === "blue" ? tempCurrentPlayer = "red" : tempCurrentPlayer = "blue"
+          setCurrentPlayer(tempCurrentPlayer)
           
         }
 
@@ -195,7 +245,8 @@ function App() {
 
   return (
     <div className="App">
-      <div>{renderBoard()}</div>
+      <div>{ <h1> you are {myColor}</h1>}</div>
+      <div style={{margin:"auto",width:"80%" }}>{renderBoard()}</div>
       <div>{winner !== "none" ? <h1> Winner is {winner} <form onSubmit={handleReset}><button type="submit">reset</button></form></h1> : null}</div>
     </div>
   );
