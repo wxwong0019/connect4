@@ -2,45 +2,52 @@ import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
 import socket from './socket';
+
 function App() {
   var initialBoard = new Array();
-  // for(let i=0; i<6; i++){
-  //   var subArray = new Array(7).fill(null)
+  for(let i=0; i<6; i++){
+    var subArray = new Array(7).fill(null)
 
-  //   initialBoard.push(subArray);
-  // }
+    initialBoard.push(subArray);
+  }
 
   
-  var count = 0;
-  for (let i = 0; i < 6; i++) {
-    var subArray = []
-    for (let i = 0; i < 7; i++) {
-      subArray.push(count);
-      count++;
-    }
-    initialBoard.push(subArray)
-  }
+  // var count = 0;
+  // for (let i = 0; i < 6; i++) {
+  //   var subArray = []
+  //   for (let i = 0; i < 7; i++) {
+  //     subArray.push(count);
+  //     count++;
+  //   }
+  //   initialBoard.push(subArray)
+  // }
+  
   const [currentPlayer, setCurrentPlayer] = useState("blue")
   const [myColor, setMyColor] = useState()
-  const [board, setBoard] = useState(initialBoard)
+  const [board, setBoard] = useState([...initialBoard])
   const [winner, setWinner] = useState("none");
   const [currMove, setCurrMove] = useState([])
 
   useEffect(()=>{
     console.log("myColor :"+myColor);
-    if(myColor === undefined){
-      setMyColor("blue")
-      socket.emit("initial-color", "blue")
-    }
+    console.log("currentPlayer :"+currentPlayer);
+    socket.on("connect", ()=> {
+      console.log("client connected lool")
+  })
     socket.on("set-initial-color", (opponentInitialColor)=> {
       console.log("opponentInitialColor :"+opponentInitialColor);
       if(opponentInitialColor === "blue"){
         setMyColor("red")
       }else{
         setMyColor("blue")
+        // socket.emit("initial-color-&id", "blue",socket.id)
       }
     })
-    
+    if(myColor === undefined){
+      console.log("first to set blue")
+      setMyColor("blue")
+      socket.emit("initial-color", "blue", socket.id)
+    }
     
     if(currMove[0]){
       checkBoard(currMove[0],currMove[1]);
@@ -75,7 +82,10 @@ function App() {
     })    
   },[board,winner,currentPlayer, myColor])
   const handleReset = () =>{
-  
+    console.log(initialBoard)
+    setBoard(initialBoard);
+    setWinner("none")
+    setCurrMove([])
   }
 
   const checkBoard = (x, y) => {
@@ -191,13 +201,18 @@ function App() {
   }
 
   const renderBoard = () => {
+    console.log("rendering Board ....")
+   
     var rowArray = [];
     for (let i = 0; i < 6; i++) {
       var colArray = [];
       for (let j = 0; j < 7; j++) {
 
         const handleClick = (e) => {
-          
+          if(currentPlayer !== myColor) {
+            console.log("it's not your turn!")
+            return;
+          }
           if (winner !== "none") {
             console.log("there is a winner :" + winner)
             return;
@@ -247,7 +262,7 @@ function App() {
     <div className="App">
       <div>{ <h1> you are {myColor}</h1>}</div>
       <div style={{margin:"auto",width:"80%" }}>{renderBoard()}</div>
-      <div>{winner !== "none" ? <h1> Winner is {winner} <form onSubmit={handleReset}><button type="submit">reset</button></form></h1> : null}</div>
+      <div>{winner !== "none" ? <h1> Winner is {winner} <button onClick={handleReset}>reset</button></h1> : null}</div>
     </div>
   );
 }
