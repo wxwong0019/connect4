@@ -10,17 +10,6 @@ function App() {
 
     initialBoard.push(subArray);
   }
-
-  
-  // var count = 0;
-  // for (let i = 0; i < 6; i++) {
-  //   var subArray = []
-  //   for (let i = 0; i < 7; i++) {
-  //     subArray.push(count);
-  //     count++;
-  //   }
-  //   initialBoard.push(subArray)
-  // }
   
   const [currentPlayer, setCurrentPlayer] = useState("blue")
   const [myColor, setMyColor] = useState()
@@ -260,6 +249,7 @@ function App() {
 
   return (
     <div className="App">
+      <div>Room id : {socket.id}</div>
       <div>{ <h1> you are {myColor}</h1>}</div>
       <div style={{margin:"auto",width:"80%" }}>{renderBoard()}</div>
       <div>{winner !== "none" ? <h1> Winner is {winner} <button onClick={handleReset}>reset</button></h1> : null}</div>
