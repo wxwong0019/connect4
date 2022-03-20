@@ -1,7 +1,10 @@
-import logo from './logo.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
-import socket from './socket';
+// import socket from './socket';
+import io from 'socket.io-client'
+
+const socket = io('http://localhost:8000')
+
 
 function App() {
   var initialBoard = new Array();
@@ -16,26 +19,38 @@ function App() {
   const [board, setBoard] = useState([...initialBoard])
   const [winner, setWinner] = useState("none");
   const [currMove, setCurrMove] = useState([])
-
+  const [roomId, setRoomId] = useState()
   useEffect(()=>{
+    // if(roomId === undefined){
+      socket.on("connect", ()=> {
+        if(roomId === undefined){
+          console.log('setting Room ID')
+          setRoomId(socket.id)
+        }
+        
+      })
+    // }
+    
     console.log("myColor :"+myColor);
     console.log("currentPlayer :"+currentPlayer);
-    socket.on("connect", ()=> {
-      console.log("client connected lool")
-  })
+  
     socket.on("set-initial-color", (opponentInitialColor)=> {
       console.log("opponentInitialColor :"+opponentInitialColor);
       if(opponentInitialColor === "blue"){
+        
         setMyColor("red")
       }else{
         setMyColor("blue")
-        // socket.emit("initial-color-&id", "blue",socket.id)
       }
+      // else{
+      //   setMyColor("blue")
+      //   socket.emit("initial-color-&id", "blue",socket.id)
+      // }
     })
     if(myColor === undefined){
       console.log("first to set blue")
       setMyColor("blue")
-      socket.emit("initial-color", "blue", socket.id)
+      // socket.emit("initial-color-&id", "blue", socket.id)
     }
     
     if(currMove[0]){
@@ -53,7 +68,7 @@ function App() {
         }
         console.log("opponentColor : "+opponentColor)
         if(opponentMove.length !==0 && currMove[0] !== opponentMove[0] && currMove[1] !== opponentMove[1]){
-          console.log("entered setBoard")
+          // console.log("entered setBoard")
           setBoard(prevBoard => {
             const newBoard = [...prevBoard];
             const newBoardRow= [...newBoard[opponentMove[0]]]
@@ -69,7 +84,7 @@ function App() {
           setCurrentPlayer("blue")
         }
     })    
-  },[board,winner,currentPlayer, myColor])
+  },[board,winner,currentPlayer, myColor, roomId])
   const handleReset = () =>{
     console.log(initialBoard)
     setBoard(initialBoard);
@@ -188,9 +203,16 @@ function App() {
       return;
     }
   }
-
+  const handleIdInput = (e) =>{
+    setRoomId(e.target.value)
+  }
+  const handleJoinRoom = (e) =>{
+    e.preventDefault();
+    socket.emit("initial-color-&id", "blue", socket.id)
+    console.log("handle Join Room")
+  }
   const renderBoard = () => {
-    console.log("rendering Board ....")
+    // console.log("rendering Board ....")
    
     var rowArray = [];
     for (let i = 0; i < 6; i++) {
@@ -224,7 +246,7 @@ function App() {
             return newBoard
           })
           var tempCurrentPlayer = null;
-          socket.emit("from-client", [topPiece,j], currentPlayer)
+          socket.emit("from-client", [topPiece,j], currentPlayer, roomId)
           currentPlayer === "blue" ? tempCurrentPlayer = "red" : tempCurrentPlayer = "blue"
           setCurrentPlayer(tempCurrentPlayer)
           
@@ -249,7 +271,11 @@ function App() {
 
   return (
     <div className="App">
-      <div>Room id : {socket.id}</div>
+      <div>Room id : {roomId}</div>
+      <form onSubmit={handleJoinRoom}>
+        <input onChange={handleIdInput}></input>
+        <button type="submit">join room</button>
+      </form>
       <div>{ <h1> you are {myColor}</h1>}</div>
       <div style={{margin:"auto",width:"80%" }}>{renderBoard()}</div>
       <div>{winner !== "none" ? <h1> Winner is {winner} <button onClick={handleReset}>reset</button></h1> : null}</div>
